@@ -7,7 +7,7 @@ public class Location
     public int Id { get; set; }
 
     [Required]
-    public int UnitId { get; set; }
+    public Guid UnitId { get; set; }
 
     public decimal Latitude { get; set; }
 

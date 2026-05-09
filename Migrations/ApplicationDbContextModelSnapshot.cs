@@ -219,11 +219,7 @@ namespace StayHub.Backend.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("BackIdImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("BankIban")
+                    b.Property<string>("BankAccountIban")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -234,10 +230,6 @@ namespace StayHub.Backend.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContractImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -253,10 +245,6 @@ namespace StayHub.Backend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FaceIdImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -264,6 +252,17 @@ namespace StayHub.Backend.Migrations
 
                     b.Property<int?>("Gender")
                         .HasColumnType("int");
+
+                    b.Property<string>("IdBackImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("IdFrontImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsIdentityVerified")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -300,7 +299,7 @@ namespace StayHub.Backend.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("ProfilePictureUrl")
+                    b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -316,8 +315,16 @@ namespace StayHub.Backend.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SelfieImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
+
+                    b.Property<string>("UnitContractDocumentUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
@@ -457,8 +464,8 @@ namespace StayHub.Backend.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -547,8 +554,8 @@ namespace StayHub.Backend.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -636,8 +643,8 @@ namespace StayHub.Backend.Migrations
                     b.Property<string>("TargetUserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -677,8 +684,8 @@ namespace StayHub.Backend.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -719,16 +726,24 @@ namespace StayHub.Backend.Migrations
 
             modelBuilder.Entity("StayHub.Backend.Domain.Entities.Unit", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Amenities")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Bathrooms")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Bedrooms")
+                        .HasColumnType("int");
 
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
@@ -748,12 +763,24 @@ namespace StayHub.Backend.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("HostName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("OwnerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ReviewsCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -762,6 +789,10 @@ namespace StayHub.Backend.Migrations
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("UnitNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UnitType")
                         .HasColumnType("int");
@@ -775,8 +806,8 @@ namespace StayHub.Backend.Migrations
 
             modelBuilder.Entity("StayHub.Backend.Domain.Entities.UnitAmenity", b =>
                 {
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AmenityId")
                         .HasColumnType("int");
@@ -801,14 +832,71 @@ namespace StayHub.Backend.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UnitId");
 
                     b.ToTable("UnitImages");
+                });
+
+            modelBuilder.Entity("StayHub.Backend.Domain.Entities.UnitReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BookingReference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CheckOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GuestId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ServiceFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Taxes")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuestId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("UnitReservations");
                 });
 
             modelBuilder.Entity("StayHub.Backend.Domain.Entities.Wishlist", b =>
@@ -822,8 +910,8 @@ namespace StayHub.Backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -1013,7 +1101,7 @@ namespace StayHub.Backend.Migrations
                     b.HasOne("StayHub.Backend.Domain.Entities.ApplicationUser", "Guest")
                         .WithMany("Reservations")
                         .HasForeignKey("GuestId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("StayHub.Backend.Domain.Entities.Unit", "Unit")
@@ -1075,6 +1163,25 @@ namespace StayHub.Backend.Migrations
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("StayHub.Backend.Domain.Entities.UnitReservation", b =>
+                {
+                    b.HasOne("StayHub.Backend.Domain.Entities.ApplicationUser", "Guest")
+                        .WithMany()
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StayHub.Backend.Domain.Entities.Unit", "Unit")
+                        .WithMany("UnitReservations")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
 
                     b.Navigation("Unit");
                 });
@@ -1151,6 +1258,8 @@ namespace StayHub.Backend.Migrations
                     b.Navigation("Reservations");
 
                     b.Navigation("UnitAmenities");
+
+                    b.Navigation("UnitReservations");
 
                     b.Navigation("Wishlists");
                 });

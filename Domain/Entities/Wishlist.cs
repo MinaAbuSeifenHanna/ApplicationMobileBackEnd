@@ -9,7 +9,7 @@ public class Wishlist
     [Required]
     public string UserId { get; set; } = string.Empty;
 
-    public int UnitId { get; set; }
+    public Guid UnitId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

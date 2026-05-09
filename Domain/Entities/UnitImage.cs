@@ -6,7 +6,7 @@ public class UnitImage
 {
     public int Id { get; set; }
 
-    public int UnitId { get; set; }
+    public Guid UnitId { get; set; }
 
     [Required]
     [MaxLength(500)]

@@ -7,7 +7,7 @@ public class Offer
     public int Id { get; set; }
 
     [Required]
-    public int UnitId { get; set; }
+    public Guid UnitId { get; set; }
 
     [Required]
     [MaxLength(150)]

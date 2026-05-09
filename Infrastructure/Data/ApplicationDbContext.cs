@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Unit> Units => Set<Unit>();
+    public DbSet<UnitReservation> UnitReservations => Set<UnitReservation>();
     public DbSet<UnitImage> UnitImages => Set<UnitImage>();
     public DbSet<Amenity> Amenities => Set<Amenity>();
     public DbSet<UnitAmenity> UnitAmenities => Set<UnitAmenity>();
@@ -31,9 +32,40 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<Unit>()
-            .Property(u => u.PricePerNight)
-            .HasColumnType("decimal(18,2)");
+        builder.Entity<Unit>(entity =>
+        {
+            entity.Property(u => u.PricePerNight)
+                .HasColumnType("decimal(18,2)");
+
+            entity.HasMany(u => u.UnitReservations)
+                .WithOne(r => r.Unit)
+                .HasForeignKey(r => r.UnitId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(u => u.OwnerUser)
+                .WithMany(u => u.Units)
+                .HasForeignKey(u => u.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<UnitReservation>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+            
+            entity.Property(r => r.BasePrice).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.ServiceFee).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.Taxes).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.TotalPrice).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(r => r.Unit)
+                .WithMany(u => u.UnitReservations)
+                .HasForeignKey(r => r.UnitId);
+
+            entity.HasOne(r => r.Guest)
+                .WithMany()
+                .HasForeignKey(r => r.GuestId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         builder.Entity<Reservation>()
             .Property(r => r.TotalPrice)
@@ -42,12 +74,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Reservation>()
             .Property(r => r.Deposit)
             .HasColumnType("decimal(18,2)");
-
-        builder.Entity<Unit>()
-            .HasOne(u => u.OwnerUser)
-            .WithMany(u => u.Units)
-            .HasForeignKey(u => u.OwnerId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<UnitImage>()
             .HasOne(ui => ui.Unit)
@@ -59,12 +85,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(r => r.Unit)
             .WithMany(u => u.Reservations)
             .HasForeignKey(r => r.UnitId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.Entity<Reservation>()
-            .HasOne(r => r.Guest)
-            .WithMany(u => u.Reservations)
-            .HasForeignKey(r => r.GuestId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Review>()

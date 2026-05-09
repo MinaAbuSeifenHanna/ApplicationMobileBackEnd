@@ -16,10 +16,10 @@ public class ApplicationUser : IdentityUser
     public string LastName { get; set; } = string.Empty;
 
     [MaxLength(500)]
-    public string? FaceIdImageUrl { get; set; }
+    public string? IdFrontImageUrl { get; set; }
 
     [MaxLength(500)]
-    public string? BackIdImageUrl { get; set; }
+    public string? IdBackImageUrl { get; set; }
 
     public bool Owner { get; set; }
 
@@ -34,13 +34,18 @@ public class ApplicationUser : IdentityUser
     public string? Currency { get; set; }
 
     [MaxLength(50)]
-    public string? BankIban { get; set; }
+    public string? BankAccountIban { get; set; }
 
     [MaxLength(500)]
-    public string? ProfilePictureUrl { get; set; }
+    public string? ProfileImageUrl { get; set; }
 
     [MaxLength(500)]
-    public string? ContractImageUrl { get; set; }
+    public string? UnitContractDocumentUrl { get; set; }
+
+    [MaxLength(500)]
+    public string? SelfieImageUrl { get; set; }
+
+    public bool IsIdentityVerified { get; set; } = false;
 
     [MaxLength(1000)]
     public string? Bio { get; set; }

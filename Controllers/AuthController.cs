@@ -18,10 +18,75 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
     {
-        var result = await _authService.RegisterAsync(registerDto);
+        var result = await _authService.RegisterAsync(registerRequest);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpGet("profile")]
+    [Authorize]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _authService.GetProfileAsync(userId);
+        if (!result.Success) return NotFound(result);
+
+        return Ok(result);
+    }
+
+    [HttpPut("profile")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequestDto profileRequest)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _authService.UpdateProfileAsync(userId, profileRequest);
+        if (!result.Success) return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    [HttpPost("onboarding/profile")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> OnboardProfile([FromForm] OnboardingProfileRequest profileRequest)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _authService.OnboardProfileAsync(userId, profileRequest);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpPost("onboarding/documents")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> OnboardDocuments([FromForm] OnboardingDocumentsRequest documentsRequest)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _authService.OnboardDocumentsAsync(userId, documentsRequest);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpPost("onboarding/verify")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> OnboardVerify([FromForm] OnboardingVerifyRequest verifyRequest)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _authService.OnboardVerifyAsync(userId, verifyRequest);
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
@@ -31,6 +96,14 @@ public class AuthController : ControllerBase
     {
         var result = await _authService.LoginAsync(loginDto);
         if (!result.Success) return Unauthorized(result);
+        return Ok(result);
+    }
+
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+    {
+        var result = await _authService.GoogleLoginAsync(request.IdToken);
+        if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
 
@@ -57,6 +130,11 @@ public class AuthController : ControllerBase
 
         return Ok(new { Message = "Logged out successfully" });
     }
+}
+
+public class GoogleLoginRequest
+{
+    public string IdToken { get; set; } = string.Empty;
 }
 
 public class TokenRequest

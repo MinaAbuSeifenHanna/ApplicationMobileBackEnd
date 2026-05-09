@@ -7,6 +7,7 @@ namespace StayHub.Backend.Infrastructure.Services;
 public class FileService : IFileService
 {
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".pdf" };
 
     public FileService(IWebHostEnvironment webHostEnvironment)
     {
@@ -17,18 +18,24 @@ public class FileService : IFileService
     {
         if (file == null || file.Length == 0) return string.Empty;
 
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!_allowedExtensions.Contains(extension))
+        {
+            throw new InvalidOperationException($"File type {extension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}");
+        }
+
         var wwwrootPath = _webHostEnvironment.WebRootPath;
         if (string.IsNullOrEmpty(wwwrootPath))
         {
             wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         }
 
-        var folderPath = Path.Combine(wwwrootPath, "images", folderName);
+        var folderPath = Path.Combine(wwwrootPath, "uploads", folderName);
 
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+        var fileName = $"{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(folderPath, fileName);
 
         using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -36,14 +43,20 @@ public class FileService : IFileService
             await file.CopyToAsync(fileStream);
         }
 
-        return $"/images/{folderName}/{fileName}";
+        return $"/uploads/{folderName}/{fileName}";
     }
 
     public void DeleteFile(string filePath)
     {
         if (string.IsNullOrEmpty(filePath)) return;
 
-        var fullPath = Path.Combine(_webHostEnvironment.WebRootPath, filePath.TrimStart('/'));
+        var wwwrootPath = _webHostEnvironment.WebRootPath;
+        if (string.IsNullOrEmpty(wwwrootPath))
+        {
+            wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        }
+
+        var fullPath = Path.Combine(wwwrootPath, filePath.TrimStart('/'));
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);

@@ -8,7 +8,7 @@ public class Reservation
 {
     public int Id { get; set; }
 
-    public int UnitId { get; set; }
+    public Guid UnitId { get; set; }
 
     [Required]
     public string GuestId { get; set; } = string.Empty;

@@ -12,7 +12,7 @@ public class Report
 
     public string? TargetUserId { get; set; }
 
-    public int? UnitId { get; set; }
+    public Guid? UnitId { get; set; }
 
     [Required]
     [MaxLength(200)]

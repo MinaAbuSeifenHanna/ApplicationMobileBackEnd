@@ -12,19 +12,55 @@ using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using StayHub.Backend.Application.Features.Auth.Validators;
+using StayHub.Backend.Application.Features.Units.Interfaces;
+using StayHub.Backend.Application.Features.Amenities.Interfaces;
+using StayHub.Backend.Application.Common.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Http.Features;
+using StayHub.Backend.Infrastructure.Middleware;
+using StayHub.Backend.Application.Features.Offers.Interfaces;
+using StayHub.Backend.Application.Features.Offers.Services;
+using StayHub.Backend.Application.Features.Reservations.Interfaces;
+using StayHub.Backend.Application.Features.Reservations.Services;
+
+// Clear default claim mapping to prevent SOAP URI transformation
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 
 // Controllers
 builder.Services.AddControllers();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowAnyOrigin();
+    });
+});
+
+// Configure Request Limits for large image uploads
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // 100 MB
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 104857600; // 100 MB
+});
+
 // FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssembly(typeof(RegisterDtoValidator).Assembly);
+builder.Services.AddValidatorsFromAssembly(typeof(RegisterRequestValidator).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -64,7 +100,11 @@ builder.Services.AddSwaggerGen(c =>
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null)));
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -89,27 +129,61 @@ builder.Services.AddAuthentication(options =>
 {
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters()
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidAudience = jwtSettings!.Audience,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+        ClockSkew = TimeSpan.Zero
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Add("Token-Expired", "true");
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
 // DI Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IUnitService, UnitService>();
+builder.Services.AddScoped<IAmenityService, AmenityService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 var app = builder.Build();
+
+// Database Seeding
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await DbInitializer.SeedAsync(context, userManager, roleManager);
+}
+
+// Use Global Exception Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
